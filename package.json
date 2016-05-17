@@ -1,0 +1,55 @@
+{
+  "name": "recommendernode",
+  "version": "0.0.0",
+  "description": "Vertical recommendations for sonder",
+  "keywords": [
+    "Recommender system",
+    "App"
+  ],
+  "engines":{
+    "node": "5.10.0",
+    "npm": "3.8.3"
+  },
+  "contributors": [
+    {
+      "name": "Santiago Montoya Angarita",
+      "email": "sntiagoma@gmail.com",
+      "url": "https://github.com/sntiagoma"
+    },
+    {
+      "name": "Daniel Ermilson Velasquez Ocampo",
+      "email": "dvelas26@gmail.com",
+      "url": "https://github.com/dvelas26"
+    },
+    {
+      "name": "Santiago Suárez Pérez",
+      "email": "suarezperezsantiago@gmail.com",
+      "url": "https://github.com/ssuarez6"
+    },
+    {
+      "name": "Andres Mateo Otalvaro Bermudez",
+      "email": "andressmateo@gmail.com",
+      "url": "https://github.com/andressmateo"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ssuarez6/recommendernode"
+  },
+  "homepage": "http://sonder-sonderserver.rhcloud.com/",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "main": "server/app.js",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "log": "^1.4.0",
+  },
+  "scripts": {
+    "start": "node app.js",
+    "test": "gulp test"
+  },
+  "private": true
+}
