@@ -5,15 +5,21 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var _ = require('lodash');
 
-mongoose.connect(); 
+mongoose.connect();
 
 //schemas and models definitions
 
 //recommendations table
 
-var recomSchema = new Schema({user_id: 'int', music_recom: [Number], 
-	movies_recom: [Number], places_recom: [Number], shows_recom: [Number],
-	books_recom: [Number]}); //table 4 recommendations
+var recomSchema = new Schema({ //4 every user, list of per-item recommendation
+	//id: 'int', //¿necessary?
+	user: {type:Schema.ObjectId, ref: "User"},
+ 	music_recom: [{type: Schema.ObjectId, ref: "Track"}],
+	movies_recom: [{type: Schema.ObjectId, ref: "Movie"}],
+	places_recom: [{type: Schema.ObjectId, ref: "Place"}],
+	shows_recom: [{type: Schema.ObjectId, ref: "Show"}],
+	books_recom: [{type: Schema.ObjectId, ref: "Book"}]
+}); //document 4 recommendations
 
 var Recommendations = new mongoose.model('Recommendations', recomSchema);
 
@@ -104,20 +110,20 @@ var ArtistSchema = new Schema({
 var Artist = new mongoose.model('Artist', ArtistSchema);
 
 /**
-* This function returns the similarity index 
+* This function returns the similarity index
 * between items of liked and disliked items
 */
 function modifiedJaccard(L1, L2, D1, D2){
 	denom = _.union(L1, L2, D1, D2);
 	numerator = _.size(_.intersection(L1, L2)) +
-				_.size(_.intersection(D1, D2)) - 
+				_.size(_.intersection(D1, D2)) -
 				_.size(_.intersection(L1, D2)) -
 				_.size(_.intersection(L2, D1));
 	index = numerator / denom; //decimal pls!!!
 }
 
 /*
-* This function uses Jaccard modified index for finding 
+* This function uses Jaccard modified index for finding
 * similarity between two users
 */
 function similarityIndexes(var userFrom, var userTo, var criteria){
@@ -171,7 +177,7 @@ function similarityIndexes(var userFrom, var userTo, var criteria){
 }
 
 /*
-* This function returns the ids 
+* This function returns the ids
 * of the users who have liked or
 * disliked an item
 * @param liked says if you're looking for users
@@ -204,7 +210,7 @@ function usersQualified(var item, var liked){
 					if(it == item){
 						usersQual.push(user);
 						break;
-					} 
+					}
 				}
 			}
 		});
@@ -255,7 +261,7 @@ function probabilityOfLike(var user, var item){
 
 	//find sumLiked
 	for(var userliked: usersLikedItem){
-		if(item instanceof Movie) 
+		if(item instanceof Movie)
 			sumLiked += similarityIndexes(user, userliked, {criteria: 'Movie'});
 		else if(item instanceof Book)
 			sumLiked += similarityIndexes(user, userliked, {criteria: 'Book'});
@@ -268,7 +274,7 @@ function probabilityOfLike(var user, var item){
 	}
 	//find sumDisliked
 	for(var userdisliked: usersDislikedItem){
-		if(item instanceof Movie) 
+		if(item instanceof Movie)
 			sumDisliked += similarityIndexes(user, userdisliked, {criteria: 'Movie'});
 		else if(item instanceof Book)
 			sumDisliked += similarityIndexes(user, userdisliked, {criteria: 'Book'});
@@ -280,14 +286,26 @@ function probabilityOfLike(var user, var item){
 			sumDisliked += similarityIndexes(user, userdisliked, {criteria: 'Track'});
 	}
 	//thid needs to be decimal
-	prob = (sumLiked + sumDisliked) / (_.size(usersLikedItem) + _.size(usersDislikedItem));
+	prob = (sumLiked + sumDisliked) /
+		(_.size(usersLikedItem) + _.size(usersDislikedItem));
 	return prob;
 }
 
 /*
-This function returns a list of the most probably items
-a user can like
+*This function returns a list of the items the user hasn't give a
+*calification yet.
+*Returns a JSON with a list for tracks, places, books, movies, and shows.
 */
-function itemsPerProbability(){
+function itemsUserHasntQualified(var user){
+
+}
+
+/**
+*This function generates all recomendations for every item
+*for an specific user.
+*All transactions are saved on Recommendations document(mongoDB)
+*So this function doesn't return anything.
+*/
+function generateRecommendationsFor(var user){
 
 }
