@@ -6,9 +6,8 @@
     "Recommender system",
     "App"
   ],
-  "engines":{
-    "node": "5.10.0",
-    "npm": "3.8.3"
+  "engines": {
+    "node": ">=0.10.0"
   },
   "contributors": [
     {
@@ -37,11 +36,11 @@
     "url": "https://github.com/ssuarez6/recommendernode"
   },
   "homepage": "http://sonder-sonderserver.rhcloud.com/",
-  "engines": {
-    "node": ">=0.10.0"
-  },
   "main": "server/app.js",
   "dependencies": {
+    "express": "^4.13.4",
+    "lodash": "^4.13.1",
+    "mongoose": "^4.4.19"
   },
   "devDependencies": {
     "gulp": "^3.9.1",
