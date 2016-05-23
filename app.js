@@ -1,113 +1,20 @@
 'use strict';
 
 var express = require('express');
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
 var _ = require('lodash');
 
 mongoose.connect();
 
 //schemas and models definitions
+var Recommendation = require('recommendation.model.js');
+var Book = require('../sonder/server/api/book/book.model.js');
+var Movie = require('../sonder/server/api/movie/movie.model.js');
+var Track = require('../sonder/server/api/music/track.model.js');
+var Artist = require('../sonder/server/api/music/artist.model.js')
+var Place = require('../sonder/server/api/place/place.model.js');
+var Show = require('../sonder/server/api/show/show.model.js');
+var User = require('../sonder/server/api/user/user.model.js');
 
-//recommendations table
-
-var recomSchema = new Schema({ //4 every user, list of per-item recommendation
-	//id: 'int', //¿necessary?
-	user: {type:Schema.ObjectId, ref: "User"},
- 	music_recom: [{type: Schema.ObjectId, ref: "Track"}],
-	movies_recom: [{type: Schema.ObjectId, ref: "Movie"}],
-	places_recom: [{type: Schema.ObjectId, ref: "Place"}],
-	shows_recom: [{type: Schema.ObjectId, ref: "Show"}],
-	books_recom: [{type: Schema.ObjectId, ref: "Book"}]
-}); //document 4 recommendations
-
-var Recommendations = new mongoose.model('Recommendations', recomSchema);
-
-//sonder schemas && models
-
-var BookSchema = new Schema({
-  slug: {type: String, unique: true},
-  title: String
-});
-
-var Book = new mongoose.model('Book', BookSchema);
-
-var MovieSchema = new Schema({
-  slug: {type: String, unique: true}
-});
-
-var Movie = new mongoose.model('Movie', MovieSchema);
-
-var TrackSchema = new Schema({
-  slug: {artist: String, track: String},
-  artist: {type: Schema.ObjectId, ref: "Artist"}
-});
-
-var Track = new mongoose.model('Track', TrackSchema);
-
-var PlaceSchema = new Schema({
-  slug: {type: String, unique: true},
-  name: String
-});
-
-var Place = new mongoose.model('Place', PlaceSchema);
-
-var ShowSchema = new Schema({
-  slug: {type: String, unique: true}
-});
-
-var Show = new mongoose.model('Show', ShowSchema);
-
-var UserSchema = new Schema({
-  name: String,
-  username: {type: String, lowercase:true },
-  email: { type: String, lowercase: true },
-  role: {
-    type: String,
-    default: 'user'
-  },
-  hashedPassword: String,
-  provider: String,
-  salt: String,
-  facebook: {},
-  twitter: {},
-  google: {},
-  github: {},
-  movies: {
-    liked: [{type:Schema.ObjectId, ref: "Movie"}],
-    disliked: [{type:Schema.ObjectId, ref: "Movie"}],
-    later: [{type:Schema.ObjectId, ref: "Movie"}]
-  },
-  shows: {
-    liked: [{type:Schema.ObjectId, ref: "Show"}],
-    disliked: [{type:Schema.ObjectId, ref: "Show"}],
-    later: [{type:Schema.ObjectId, ref: "Show"}]
-  },
-  tracks: {
-    liked: [{type:Schema.ObjectId, ref: "Track"}],
-    disliked: [{type:Schema.ObjectId, ref: "Track"}],
-    later: [{type:Schema.ObjectId, ref: "Track"}]
-  },
-  books: {
-    liked: [{type:Schema.ObjectId, ref: "Book"}],
-    disliked: [{type:Schema.ObjectId, ref: "Book"}],
-    later: [{type:Schema.ObjectId, ref: "Book"}]
-  },
-  places: {
-    liked: [{type:Schema.ObjectId, ref: "Place"}],
-    disliked: [{type:Schema.ObjectId, ref: "Place"}],
-    later: [{type:Schema.ObjectId, ref: "Place"}]
-  }
-});
-
-var User = new mongoose.model('User', UserSchema);
-
-var ArtistSchema = new Schema({
-  slug: String,
-  mbid: String
-});
-
-var Artist = new mongoose.model('Artist', ArtistSchema);
 
 /**
 * This function returns the similarity index
@@ -301,10 +208,10 @@ function itemsUserHasntQualified(var user){
 }
 
 /**
-*This function generates all recomendations for every item
+*This function generates all recomendations for every item-ype
 *for an specific user.
 *All transactions are saved on Recommendations document(mongoDB)
-*So this function doesn't return anything.
+*so this function doesn't return anything.
 */
 function generateRecommendationsFor(var user){
 
