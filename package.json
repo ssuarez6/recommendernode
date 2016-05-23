@@ -1,6 +1,6 @@
 {
   "name": "recommendernode",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "description": "Vertical recommendations for sonder",
   "keywords": [
     "Recommender system",
@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "gulp": "^3.9.1",
-    "log": "^1.4.0",
+    "log": "^1.4.0"
   },
   "scripts": {
     "start": "node app.js",
