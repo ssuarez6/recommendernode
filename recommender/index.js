@@ -7,17 +7,24 @@ var Show = require('../models/show.model');
 var User = require('../models/user.model');
 var Recommendation = require('../models/recommendation.model');
 
+var _ = require('lodash');
+
+
+var populates = 'places.liked places.disliked shows.liked shows.disliked '+
+  'movies.liked movies.disliked tracks.liked tracks.disliked books.liked '+
+  'books.disliked';
 /**
 * This function returns the similarity index
 * between items of liked and disliked items
 */
 function modifiedJaccard(L1, L2, D1, D2){
-	denom = _.union(L1, L2, D1, D2);
+	denom = _.size(_.union(L1, L2, D1, D2));
 	numerator = _.size(_.intersection(L1, L2)) +
 				_.size(_.intersection(D1, D2)) -
 				_.size(_.intersection(L1, D2)) -
 				_.size(_.intersection(L2, D1));
 	index = numerator / denom; //decimal pls!!!
+  return index;
 }
 
 /*
@@ -85,7 +92,8 @@ function similarityIndexes(userFrom, userTo, criteria){
 function usersQualified(item, liked){
 	usersQual = [];
 	if(item instanceof Movie){
-		User.find().exec(function(err, users){
+		User.find().populate('movies.liked movies.disliked')
+    .exec(function(err, users){
 			for(var i=0; i<users.length; i++){
 				if(liked){
 					list = users[i].movies.liked;
@@ -101,7 +109,8 @@ function usersQualified(item, liked){
 			}
 		});
 	}else if(item instanceof Place){
-		User.find().exec(function(err, users){
+		User.find().populate('places.liked places.disliked')
+    .exec(function(err, users){
 			for(var i=0; i<users.length; i++){
 				list = liked ? user.places.liked : user.places.disliked;
 				for(var j=0; j<list.length; j++){
@@ -113,7 +122,8 @@ function usersQualified(item, liked){
 			}
 		});
 	}else if(item instanceof Track){
-		User.find().exec(function(err, users){
+		User.find().populate('tracks.liked tracks.disliked')
+    .exec(function(err, users){
 			for(var i=0; i<users.length; i++){
 				list = liked ? user.tracks.liked : user.tracks.disliked;
 				for(var j=0; j<list.length; j++){
@@ -125,7 +135,8 @@ function usersQualified(item, liked){
 			}
 		});
 	}else if(item instanceof Show){
-		User.find().exec(function(err, users){
+		User.find().populate('shows.liked shows.disliked')
+    .exec(function(err, users){
 			for(var i=0; i<users.length; i++){
 				list = liked ? user.shows.liked : user.shows.disliked;
 				for(var j=0; j<list.length; j++){
@@ -137,7 +148,8 @@ function usersQualified(item, liked){
 			}
 		});
 	}else if(item instanceof Book){
-		User.find().exec(function(err, users){
+		User.find().populate('books.liked books.disliked')
+    .exec(function(err, users){
 			for(var i=0; i<users.length; i++){
 				list = liked ? user.books.liked : user.books.disliked;
 				for(var j=0; j<list.length; j++){
@@ -209,7 +221,53 @@ function probabilityOfLike(user, item){
 *Returns a JSON with a list for tracks, places, books, movies, and shows.
 */
 function itemsUserHasntQualified(user){
+  console.log("soy el usuario: "+user.name);
+  movies_unqualified = [];
+  books_unqualified = [];
+  places_unqualified = [];
+  shows_unqualified = [];
+  tracks_unqualified = [];
+   User.find().populate(populates).exec((err, users)=>{
+    for(var i=0; i<users.length && users[i]!=user; i++){
+      var unqM = _.difference(_.union(users[i].movies.liked,
+        users[i].movies.disliked),
+        _.union(user.movies.liked, user.movies.disliked));
+      movies_unqualified = _.union(movies_unqualified, unqM);
 
+      var unqB = _.difference(_.union(users[i].books.liked,
+        users[i].books.disliked),
+        _.union(user.books.liked, user.books.disliked));
+      books_unqualified = _.union(books_unqualified, unqB);
+
+      console.log('Lugares gustados por: '+users[i].name);
+      var unqP = _.difference(_.union(users[i].places.liked,
+        users[i].places.disliked),
+        _.union(user.places.liked, user.places.disliked));
+      places_unqualified = _.union(places_unqualified, unqP);
+
+      var unqS = _.difference(_.union(users[i].shows.liked,
+        users[i].places.disliked),
+        _.union(user.shows.liked, user.shows.disliked));
+      shows_unqualified = _.union(shows_unqualified, unqS);
+
+      var unqT = _.difference(_.union(users[i].tracks.liked,
+        users[i].tracks.disliked),
+        _.union(user.tracks.liked, user.shows.disliked));
+      tracks_unqualified = _.union(tracks_unqualified, unqT);
+    }
+    console.log(places_unqualified);
+  });
+  var returnable = {
+    unqualified: {
+      movies: movies_unqualified,
+      shows: shows_unqualified,
+      books: books_unqualified,
+      places: places_unqualified,
+      tracks: tracks_unqualified
+    }
+  }
+  console.log(returnable);
+  return returnable;
 }
 
 /**
@@ -219,9 +277,21 @@ function itemsUserHasntQualified(user){
 *so this function doesn't return anything.
 */
 function generateRecommendationsFor(user){
-
+  items = itemsUserHasntQualified(user);
+  //music 4 example
+  musicRecomm = {};
+  for(var i=0; i<items.unqualified.tracks.length && i<15; i++){ //se recomiendan maximo 15 items
+    var prob = probabilityOfLike(user, items.unqualified.tracks[i]);
+    //??
+  }
 }
 
-exports.recommend = function(req, res){
-  //aqui se hacen las cosas para manejar el request
+exports.recommend = function(){
+  var message = "";
+  User
+    .find({})
+    .populate('places.liked places.disliked')
+    .exec((err, users)=>{
+       itemsUserHasntQualified(users[0])
+    });
 }
