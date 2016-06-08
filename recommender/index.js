@@ -6,7 +6,6 @@ var Place = require('../models/place.model');
 var Show = require('../models/show.model');
 var User = require('../models/user.model');
 var Recommendation = require('../models/recommendation.model');
-
 var _ = require('lodash');
 
 
@@ -39,8 +38,8 @@ function similarityIndexes(userFrom, userTo, criteria){
 		DM1 = userFrom.movies.disliked;
 		DM2 = userTo.movies.disliked;
 
-		moviedIndex = modifiedJaccard(LM1, LM2, DM1, DM2);
-		return moviedIndex;
+		moviesIndex = modifiedJaccard(LM1, LM2, DM1, DM2);
+		return moviesIndex;
 	}else if (criteria.criteria == 'Show'){
 
 	//shows
@@ -62,6 +61,7 @@ function similarityIndexes(userFrom, userTo, criteria){
 		return tracksIndex;
 	}else if(criteria.criteria == 'Place'){
 		//places
+		console.log("Es un lugar este item!");
 		LP1 = userFrom.places.liked;
 		LP2 = userTo.places.liked;
 		DP1 = userFrom.places.disliked;
@@ -101,7 +101,7 @@ function usersQualified(item, liked){
 					list = users[i].movies.disliked;
 				}
 				for(var j=0;j<list.length; j++){
-					if(list[j] == item){
+					if(String(list[j]._id) == String(item._id)){
 						usersQual.push(users[i]);
 						break;
 					}
@@ -112,10 +112,10 @@ function usersQualified(item, liked){
 		User.find().populate('places.liked places.disliked')
     .exec(function(err, users){
 			for(var i=0; i<users.length; i++){
-				list = liked ? user.places.liked : user.places.disliked;
+				list = liked ? users[i].places.liked : users[i].places.disliked;
 				for(var j=0; j<list.length; j++){
-					if(list[j] == item){
-						usersQual.push(user);
+					if(String(list[j]._id) == String(item._id)){
+						usersQual.push(users[i]);
 						break;
 					}
 				}
@@ -125,10 +125,10 @@ function usersQualified(item, liked){
 		User.find().populate('tracks.liked tracks.disliked')
     .exec(function(err, users){
 			for(var i=0; i<users.length; i++){
-				list = liked ? user.tracks.liked : user.tracks.disliked;
+				list = liked ? users[i].tracks.liked : users[i].tracks.disliked;
 				for(var j=0; j<list.length; j++){
-					if(list[j] == item){
-						usersQual.push(user);
+					if(String(list[j]._id) == String(item._id)){
+						usersQual.push(users[i]);
 						break;
 					}
 				}
@@ -138,10 +138,10 @@ function usersQualified(item, liked){
 		User.find().populate('shows.liked shows.disliked')
     .exec(function(err, users){
 			for(var i=0; i<users.length; i++){
-				list = liked ? user.shows.liked : user.shows.disliked;
+				list = liked ? users[i].shows.liked : users[i].shows.disliked;
 				for(var j=0; j<list.length; j++){
-					if(list[j] == item){
-						usersQual.push(user);
+					if(String(list[j]._id) == String(item._id)){
+						usersQual.push(users[i]);
 						break;
 					}
 				}
@@ -151,17 +151,17 @@ function usersQualified(item, liked){
 		User.find().populate('books.liked books.disliked')
     .exec(function(err, users){
 			for(var i=0; i<users.length; i++){
-				list = liked ? user.books.liked : user.books.disliked;
+				list = liked ? users[i].books.liked : users[i].books.disliked;
 				for(var j=0; j<list.length; j++){
-					if(list[j] == item){
-						usersQual.push(user);
+					if(String(list[j]._id) == String(item._id)){
+						usersQual.push(users[i]);
 						break;
 					}
 				}
 			}
 		});
 	}
-	return usersQual;
+  return usersQual;
 }
 
 /**
@@ -228,7 +228,8 @@ function itemsUserHasntQualified(user){
   shows_unqualified = [];
   tracks_unqualified = [];
    User.find().populate(populates).exec((err, users)=>{
-    for(var i=0; i<users.length && users[i]!=user; i++){
+    for(var i=0; i<users.length; i++){
+      if(String(users[i]._id) == String(user._id)) continue;
       var unqM = _.difference(_.union(users[i].movies.liked,
         users[i].movies.disliked),
         _.union(user.movies.liked, user.movies.disliked));
@@ -239,11 +240,12 @@ function itemsUserHasntQualified(user){
         _.union(user.books.liked, user.books.disliked));
       books_unqualified = _.union(books_unqualified, unqB);
 
-      console.log('Lugares gustados por: '+users[i].name);
       var unqP = _.difference(_.union(users[i].places.liked,
         users[i].places.disliked),
-        _.union(user.places.liked, user.places.disliked));
+        _.union(user.places.liked, user.places.disliked));  // HERE BE ERRORS!
+      //console.log(users[i].places.liked[0] + "\n" + user.places.liked[0]);
       places_unqualified = _.union(places_unqualified, unqP);
+      //console.log(places_unqualified);
 
       var unqS = _.difference(_.union(users[i].shows.liked,
         users[i].places.disliked),
@@ -255,7 +257,7 @@ function itemsUserHasntQualified(user){
         _.union(user.tracks.liked, user.shows.disliked));
       tracks_unqualified = _.union(tracks_unqualified, unqT);
     }
-    console.log(places_unqualified);
+    //console.log(places_unqualified);
   });
   var returnable = {
     unqualified: {
@@ -266,9 +268,11 @@ function itemsUserHasntQualified(user){
       tracks: tracks_unqualified
     }
   }
-  console.log(returnable);
-  return returnable;
+  //console.log(returnable);
+  return returnable; //FUCKING PROMISES!!!
 }
+
+
 
 /**
 *This function generates all recomendations for every item-type
@@ -278,12 +282,150 @@ function itemsUserHasntQualified(user){
 */
 function generateRecommendationsFor(user){
   items = itemsUserHasntQualified(user);
-  //music 4 example
-  musicRecomm = {};
-  for(var i=0; i<items.unqualified.tracks.length && i<15; i++){ //se recomiendan maximo 15 items
+  //music
+  musicRecomm = [];
+  for(var i=0; i<items.unqualified.tracks.length; i++){ //se recomiendan maximo 15 items
     var prob = probabilityOfLike(user, items.unqualified.tracks[i]);
-    //??
+    var obj = {
+      track: items.unqualified.tracks[i],
+      pr: prob
+    };
+    musicRecomm.push(obj);
   }
+  //books
+  booksRecomm = [];
+  for(var i=0; i<items.unqualified.books.length; i++){ //se recomiendan maximo 15 items
+    var prob = probabilityOfLike(user, items.unqualified.books[i]);
+    var obj = {
+      book: items.unqualified.books[i],
+      pr: prob
+    };
+    booksRecomm.push(obj);
+  }
+  //places
+  placesRecomm = [];
+  for(var i=0; i<items.unqualified.places.length; i++){ //se recomiendan maximo 15 items
+    var prob = probabilityOfLike(user, items.unqualified.places[i]);
+    var obj = {
+      place: items.unqualified.places[i],
+      pr: prob
+    };
+    placesRecomm.push(obj);
+  }
+  //shows
+  showsRecomm = [];
+  for(var i=0; i<items.unqualified.shows.length; i++){ //se recomiendan maximo 15 items
+    var prob = probabilityOfLike(user, items.unqualified.shows[i]);
+    var obj = {
+      show: items.unqualified.shows[i],
+      pr: prob
+    };
+    showsRecomm.push(obj);
+  }
+  //movies
+  moviesRecomm = [];
+  for(var i=0; i<items.unqualified.movies.length; i++){ //se recomiendan maximo 15 items
+    var prob = probabilityOfLike(user, items.unqualified.movies[i]);
+    var obj = {
+      movie: items.unqualified.movies[i],
+      pr: prob
+    };
+    moviesRecomm.push(obj);
+  }
+  var rec = {
+    music: musicRecomm,
+    books: booksRecomm,
+    places: placesRecomm,
+    shows: showsRecomm,
+    movies: moviesRecomm
+  };
+  return rec;
+}
+
+/**
+*This funcion sorts the list of unqualified items by probability
+*returns a new JSON WITHOUT the probability
+**/
+function sortByProb(recomms){
+  sortedMusic = [];
+  sortedBooks = [];
+  sortedPlaces = [];
+  sortedMovies = [];
+  sortedShows = [];
+  //music
+  for(var i=1; i<recomms.music.length; i++){
+    for(var j=0; j<recomms.music.length-i; j++){
+      if(recomms.music[j].prob < recomms.music[j+1].prob){
+        var aux = recomms.music[j];
+        recomms.music[j] = recomms.music[j+1];
+        recomms.music[j+1] = aux;
+      }
+    }
+  }
+  for(var i=0; i<recomms.music.length; i++){
+    sortedMusic.push(recomms.music[i].track);
+  }
+  //books
+  for(var i=1; i<recomms.books.length; i++){
+    for(var j=0; j<recomms.books.length-i; j++){
+      if(recomms.books[j].prob < recomms.books[j+1].prob){
+        var aux = recomms.books[j];
+        recomms.books[j] = recomms.books[j+1];
+        recomms.books[j+1] = aux;
+      }
+    }
+  }
+  for(var i=0; i<recomms.books.length; i++){
+    sortedBooks.push(recomms.books[i].book);
+  }
+  //places
+  for(var i=1; i<recomms.places.length; i++){
+    for(var j=0; j<recomms.places.length-i; j++){
+      if(recomms.places[j].prob < recomms.places[j+1].prob){
+        var aux = recomms.places[j];
+        recomms.places[j] = recomms.places[j+1];
+        recomms.places[j+1] = aux;
+      }
+    }
+  }
+  for(var i=0; i<recomms.places.length; i++){
+    sortedPlaces.push(recomms.places[i].place);
+  }
+  //movies
+  for(var i=1; i<recomms.movies.length; i++){
+    for(var j=0; j<recomms.movies.length-i; j++){
+      if(recomms.movies[j].prob < recomms.movies[j+1].prob){
+        var aux = recomms.movies[j];
+        recomms.movies[j] = recomms.movies[j+1];
+        recomms.movies[j+1] = aux;
+      }
+    }
+  }
+  for(var i=0; i<recomms.movies.length; i++){
+    sortedMovies.push(recomms.movies[i].movie);
+  }
+  //shows
+  for(var i=1; i<recomms.shows.length; i++){
+    for(var j=0; j<recomms.shows.length-i; j++){
+      if(recomms.shows[j].prob < recomms.shows[j+1].prob){
+        var aux = recomms.shows[j];
+        recomms.shows[j] = recomms.shows[j+1];
+        recomms.shows[j+1] = aux;
+      }
+    }
+  }
+  for(var i=0; i<recomms.shows.length; i++){
+    sortedShows.push(recomms.shows[i].show);
+  }
+
+  var rec = {
+    music: sortedMusic,
+    books: sortedBooks,
+    movies: sortedMovies,
+    shows: sortedShows,
+    places: sortedPlaces
+  }
+  return rec;
 }
 
 exports.recommend = function(){
@@ -292,6 +434,10 @@ exports.recommend = function(){
     .find({})
     .populate('places.liked places.disliked')
     .exec((err, users)=>{
-       itemsUserHasntQualified(users[0])
+      items = itemsUserHasntQualified(users[0]);
+
+      /*for(var i=0; i<userslist.length; ++i){
+        console.log("Usuario que dio like a '"+users[0].places.liked[0].name+"': "+userslist[i].name);
+      }*/
     });
 }

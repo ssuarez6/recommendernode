@@ -7,7 +7,6 @@ var router = express.Router();
 var recommender = require('./recommender');
 
 mongoose.connect('mongodb://localhost/sonderdb-dev');
-console.log(recommender);
 var app = express();
 recommender.recommend();
 router.get('/', (req, res)=>{res.send("HOLA");});
