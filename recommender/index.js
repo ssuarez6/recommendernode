@@ -271,7 +271,7 @@ function itemsUserHasntQualified(user){
 }
 
 /**
-*This function generates all recomendations for every item-ype
+*This function generates all recomendations for every item-type
 *for an specific user.
 *All transactions are saved on Recommendations document(mongoDB)
 *so this function doesn't return anything.
