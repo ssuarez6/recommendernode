@@ -505,6 +505,12 @@ exports.recommend = function(){
         var p = generateRecommendationsFor(users[i]);
         p.then((recomms)=>{
           var sortedRec = sortByProb(recomms);
+          sortedRec.music = _.unionBy(sortedRec.music, sortedRec.music, 'slug');
+          sortedRec.places = _.unionBy(sortedRec.places, sortedRec.places, 'slug');
+          sortedRec.movies = _.unionBy(sortedRec.movies, sortedRec.movies, 'slug');
+          sortedRec.shows = _.unionBy(sortedRec.shows, sortedRec.shows, 'slug');
+          sortedRec.books = _.unionBy(sortedRec.books, sortedRec.books, 'slug');
+          console.log(sortedRec);
           var r = new Recommendation({
             user: users[i],
             music_recom: sortedRec.music,
