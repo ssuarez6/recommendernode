@@ -501,36 +501,49 @@ exports.recommend = function(){
     .find({})
     .populate('places.liked places.disliked')
     .exec((err, users)=>{
+      var promises = [];
       for(var i=0; i<users.length; i++){
-        var p = generateRecommendationsFor(users[i]);
-        p.then((recomms)=>{
-          var sortedRec = sortByProb(recomms);
+		      var p = generateRecommendationsFor(users[i]);
+          promises.push(p);
+      }
+      Promise.all(promises).then((recomms_arr)=>{
+        console.log(recomms_arr.length);
+        for(var i=0; i<recomms_arr.length; i++){
+          var sortedRec = sortByProb(recomms_arr[i]);
           sortedRec.music = _.unionBy(sortedRec.music, sortedRec.music, 'slug');
           sortedRec.places = _.unionBy(sortedRec.places, sortedRec.places, 'slug');
           sortedRec.movies = _.unionBy(sortedRec.movies, sortedRec.movies, 'slug');
           sortedRec.shows = _.unionBy(sortedRec.shows, sortedRec.shows, 'slug');
           sortedRec.books = _.unionBy(sortedRec.books, sortedRec.books, 'slug');
-          console.log(sortedRec);
+		      sortedRec.places = _.differenceBy(sortedRec.places, _.unionBy(users[i].places.liked, users[i].places.disliked, 'slug'), 'slug');
+          //console.log(sortedRec);
           var r = new Recommendation({
-            user: users[i],
+            username: users[i].username,
             music_recom: sortedRec.music,
             movies_recom: sortedRec.movies,
             places_recom: sortedRec.places,
             shows_recom: sortedRec.shows,
             books_recom: sortedRec.books
           });
+          console.log(r);
           r.save((err, r)=>{
             if(err) console.log(err);
             console.log("Recommendation stored successfully");
           });
-        });
-      }
+        }
+      });
+
     });
 }
-
+/*  Recommendation.find().exec((err, recs)=>{
+  	for(var i=0; i<recs.length; i++){
+		console.log(recs[i]);
+	}
+  });*/
 exports.deleteAllRecommendations = ()=>{
   Recommendation.remove({}, (err)=>{
-    console.log("ERROR");
-    console.log(err);
+  });
+  Recommendation.find().exec((err, recs)=>{
+    console.log(recs);
   });
 }

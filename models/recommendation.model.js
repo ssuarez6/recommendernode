@@ -6,7 +6,7 @@ var Schema = mongoose.Schema;
 
 var recomSchema = new Schema({ //4 every user, list of per-item recommendation
 	//id: 'int', //¿necessary?
-	user: {type:Schema.ObjectId, ref: "User"},
+	username: {type:String, lowercase: true},
  	music_recom: [{type: Schema.ObjectId, ref: "Track"}],
 	movies_recom: [{type: Schema.ObjectId, ref: "Movie"}],
 	places_recom: [{type: Schema.ObjectId, ref: "Place"}],
