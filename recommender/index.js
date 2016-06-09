@@ -385,7 +385,7 @@ function generateRecommendationsFor(user){
               Promise.all(promises).then((res)=>{
                 for(var i=0; i<items.unqualified.movies.length; i++){
                   var obj = {
-                    movie: items.unqualified.items[i],
+                    movie: items.unqualified.movies[i],
                     pr: res[i]
                   };
                   moviesRecomm.push(obj);
