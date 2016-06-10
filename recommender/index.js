@@ -90,7 +90,6 @@ function similarityIndexes(userFrom, userTo, criteria){
 * @param item the item
 */
 function usersQualified(item, liked){
-
   return new Promise(function(resolve, reject){
     usersQual = [];
     if(item instanceof Place){
@@ -367,13 +366,14 @@ function generateRecommendationsFor(user){
               var pm = probabilityOfLike(user, items.unqualified.shows[i]);
               promises.push(pm);
             }
-            Promise.all(promises).then((res)=>{
+            Promise.all(promises).then((res)  =>{
               for(var i=0; i<items.unqualified.shows.length; i++){
                 var obj = {
                   show: items.unqualified.shows[i],
                   pr: res[i]
                 };
                 showsRecomm.push(obj);
+                console.log(obj.pr);
               }
               //movies
               moviesRecomm = [];
@@ -397,6 +397,7 @@ function generateRecommendationsFor(user){
                   shows: showsRecomm,
                   movies: moviesRecomm
                 };
+                console.log(rec);
                 resolve(rec);
               });
             });
@@ -495,6 +496,16 @@ function sortByProb(recomms){
   return rec;
 }
 
+function shuffle(array){
+  for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+  return array;
+}
+
 exports.recommend = function(){
   var message = "";
   User
@@ -515,15 +526,14 @@ exports.recommend = function(){
           sortedRec.movies = _.unionBy(sortedRec.movies, sortedRec.movies, 'slug');
           sortedRec.shows = _.unionBy(sortedRec.shows, sortedRec.shows, 'slug');
           sortedRec.books = _.unionBy(sortedRec.books, sortedRec.books, 'slug');
-		      sortedRec.places = _.differenceBy(sortedRec.places, _.unionBy(users[i].places.liked, users[i].places.disliked, 'slug'), 'slug');
-          //console.log(sortedRec);
+		      sortedRec.places = _.differenceBy(sortedRec.places, _.unionBy(users[i].places.liked, users[i].places.disliked, 'slug'), 'slug');  
           var r = new Recommendation({
             username: users[i].username,
-            music_recom: sortedRec.music,
-            movies_recom: sortedRec.movies,
-            places_recom: sortedRec.places,
-            shows_recom: sortedRec.shows,
-            books_recom: sortedRec.books
+            music_recom: shuffle(sortedRec.music),
+            movies_recom: shuffle(sortedRec.movies),
+            places_recom: shuffle(sortedRec.places),
+            shows_recom: shuffle(sortedRec.shows),
+            books_recom: shuffle(sortedRec.books)
           });
           console.log(r);
           r.save((err, r)=>{
@@ -542,8 +552,5 @@ exports.recommend = function(){
   });*/
 exports.deleteAllRecommendations = ()=>{
   Recommendation.remove({}, (err)=>{
-  });
-  Recommendation.find().exec((err, recs)=>{
-    console.log(recs);
   });
 }
