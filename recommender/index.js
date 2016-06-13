@@ -529,11 +529,11 @@ exports.recommend = function(){
 		      sortedRec.places = _.differenceBy(sortedRec.places, _.unionBy(users[i].places.liked, users[i].places.disliked, 'slug'), 'slug');  
           var r = new Recommendation({
             username: users[i].username,
-            music_recom: shuffle(sortedRec.music),
-            movies_recom: shuffle(sortedRec.movies),
-            places_recom: shuffle(sortedRec.places),
-            shows_recom: shuffle(sortedRec.shows),
-            books_recom: shuffle(sortedRec.books)
+            music_recom: sortedRec.music,
+            movies_recom: sortedRec.movies,
+            places_recom: sortedRec.places,
+            shows_recom: sortedRec.shows,
+            books_recom: sortedRec.books
           });
           console.log(r);
           r.save((err, r)=>{
